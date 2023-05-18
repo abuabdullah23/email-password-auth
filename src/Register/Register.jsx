@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from 'firebase/auth';
 import app from '../firebase/firebase-config';
+import { Link } from 'react-router-dom';
 
 const auth = getAuth(app);
 
@@ -27,7 +28,10 @@ const Register = () => {
         } else if (!/(?=.*[0-9].*[0-9])/.test(password)) {
             setError('Please add at least two numbers');
             return;
-        } else if (password.length < 6) {
+        }else if(!/(?=.*[!@#$&*])/.test(password)){
+            setError('Please add a special character.')
+            return;
+        }else if (password.length < 6) {
             setError('Please add at least 6 characters in your password')
         }
 
@@ -38,13 +42,28 @@ const Register = () => {
                 console.log(loggedUser);
                 setError('');
                 event.target.reset('');
-                setSuccess('Account has been created Successfully!')
+                setSuccess('Account has been created Successfully!');
+
+                sendVerificationEmail(result.user);
             })
             .catch(error => {
                 console.log(error.message);
                 setError(error.message)
             })
     }
+
+    // send Email Verification
+    const sendVerificationEmail = (user) =>{
+        sendEmailVerification(user)
+        .then(result =>{
+            console.log(result);
+            alert('Please verify your email address')
+        })
+        .catch(error=>{
+            console.log(error)
+        })
+    }
+    
 
     // const handleEmailChange = (event) => {
     //     console.log(event.target.value);
@@ -67,6 +86,8 @@ const Register = () => {
                         <br />
                         <input type="submit" value="Register" className='border border-slate-600 rounded-md bg-slate-200 hover:bg-slate-950 hover:text-white px-7 py-3' />
                     </form>
+                    <p><small>Already have an account? please <Link to='/login'>Login</Link></small></p>
+
                     <p>{success}</p>
                 </div>
             </div>
