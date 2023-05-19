@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification, updateProfile } from 'firebase/auth';
 import app from '../firebase/firebase-config';
 import { Link } from 'react-router-dom';
 
@@ -19,7 +19,8 @@ const Register = () => {
         // 2. collect form data
         const email = event.target.email.value;
         const password = event.target.password.value;
-        console.log(email, password);
+        const name = event.target.name.value;
+        console.log(name, email, password);
 
         // set validate/strong password
         if (!/(?=.*[A-Z])/.test(password)) {
@@ -28,10 +29,10 @@ const Register = () => {
         } else if (!/(?=.*[0-9].*[0-9])/.test(password)) {
             setError('Please add at least two numbers');
             return;
-        }else if(!/(?=.*[!@#$&*])/.test(password)){
+        } else if (!/(?=.*[!@#$&*])/.test(password)) {
             setError('Please add a special character.')
             return;
-        }else if (password.length < 6) {
+        } else if (password.length < 6) {
             setError('Please add at least 6 characters in your password')
         }
 
@@ -45,6 +46,8 @@ const Register = () => {
                 setSuccess('Account has been created Successfully!');
 
                 sendVerificationEmail(result.user);
+
+                updateUserData(result.user, name)
             })
             .catch(error => {
                 console.log(error.message);
@@ -53,17 +56,30 @@ const Register = () => {
     }
 
     // send Email Verification
-    const sendVerificationEmail = (user) =>{
+    const sendVerificationEmail = (user) => {
         sendEmailVerification(user)
-        .then(result =>{
-            console.log(result);
-            alert('Please verify your email address')
-        })
-        .catch(error=>{
-            console.log(error)
-        })
+            .then(result => {
+                console.log(result);
+                alert('Please verify your email address')
+            })
+            .catch(error => {
+                console.log(error)
+            })
     }
-    
+
+    // update user data
+    const updateUserData = (user, name) => {
+        updateProfile(user, {
+            displayName: name
+        })
+            .then(() => {
+                console.log('user name updated')
+            })
+            .catch(error => {
+                setError(error.message);
+            })
+    }
+
 
     // const handleEmailChange = (event) => {
     //     console.log(event.target.value);
@@ -79,6 +95,8 @@ const Register = () => {
             <div className='mt-5 grid justify-items-stretch'>
                 <div className='justify-self-center'>
                     <form onSubmit={handleRegister}>
+                        <input type="text" name="text" id="name" placeholder='Your Name' required className='px-5 py-3 bg-slate-200 rounded-md mb-3' />
+                        <br />
                         <input type="email" name="email" id="email" placeholder='your email' required className='px-5 py-3 bg-slate-200 rounded-md mb-3' />
                         <br />
                         <input type="password" name="password" id="password" placeholder='your password' required className='px-5 py-3 bg-slate-200 rounded-md mb-3' />
